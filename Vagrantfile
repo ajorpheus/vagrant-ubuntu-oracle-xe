@@ -11,7 +11,7 @@ Vagrant.configure("2") do |config|
   config.vm.hostname = "oracle"
 
   # Forward Oracle port
-  config.vm.network :forwarded_port, guest: 1521, host: 1521
+  config.vm.network :forwarded_port, guest: 1221, host: 1221
 
   # Provider-specific configuration so you can fine-tune various backing
   # providers for Vagrant. These expose provider-specific options.
