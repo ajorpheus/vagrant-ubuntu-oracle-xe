@@ -112,6 +112,9 @@ class oracle::xe {
     '/tmp/xe.rsp.orig':
       source                                             => 'puppet:///modules/oracle/xe.rsp';
 
+    '/tmp/setup.sql':
+      ensure                                             => file,
+      source                                             => 'puppet:///modules/oracle/setup.sql';
     '/bin/awk':
       ensure                                             => link,
       target                                             => '/usr/bin/awk';
@@ -132,6 +135,9 @@ class oracle::xe {
       command                 => '/usr/bin/dos2unix -n /tmp/xe.rsp.orig /tmp/xe.rsp',
       creates                 => '/tmp/xe.rsp',
       require                 => [File['/tmp/xe.rsp.orig'], Package['dos2unix']];
+    'dos2unix setup.sql':
+      command                 => '/usr/bin/dos2unix -o /tmp/setup.sql',
+      require                 => [File['/tmp/setup.sql'], Package['dos2unix']];
   }
 
   exec {
@@ -157,6 +163,7 @@ class oracle::xe {
       require                                        => [Package['oracle-xe'],
                   Exec['dos2unix oracle-env.sh'],
                   Exec['dos2unix xe.rsp'],
+                  Exec['dos2unix setup.sql'],
                   File['/var/lock/subsys/listener'],
                   Exec['set up shm'],
                   Exec['enable swapfile']],
@@ -187,4 +194,10 @@ class oracle::xe {
                   Exec['dos2unix 60-oracle.conf']],
   }
 
+  exec { 'oracle-script':
+    path                                    => ['/bin', '/u01/app/oracle/product/11.2.0/xe/bin'],
+    command                                 => 'sqlplus -s system/manager@xe < /tmp/setup.sql',
+    require                                 => [ File['/tmp/setup.sql'], Service['oracle-xe']],
+    timeout                                 => '0',
+  }
 }
