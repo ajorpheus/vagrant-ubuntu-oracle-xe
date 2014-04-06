@@ -194,10 +194,21 @@ class oracle::xe {
                   Exec['dos2unix 60-oracle.conf']],
   }
 
+  exec { 'oracle-env-check':
+    path                                    => ['/bin', '/usr/bin', '/u01/app/oracle/product/11.2.0/xe/bin'],
+    command                                 => 'echo "SID:$ORACLE_SID" && echo "ORACLE_HOME: $ORACLE_HOME" && whoami',
+    logoutput                               => true,
+    environment                             => ['LD_LIBRARY_PATH=/u01/app/oracle/product/11.2.0/xe/lib:','ORACLE_SID=XE','ORACLE_BASE=/u01/app/oracle','PATH=/u01/app/oracle/product/11.2.0/xe/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/opt/vagrant_ruby/bin','ORACLE_HOME=/u01/app/oracle/product/11.2.0/xe'],
+    user                                    => 'vagrant'
+  }
+
   exec { 'oracle-script':
     path                                    => ['/bin', '/u01/app/oracle/product/11.2.0/xe/bin'],
     command                                 => 'sqlplus -s system/manager@xe < /tmp/setup.sql',
-    require                                 => [ File['/tmp/setup.sql'], Service['oracle-xe']],
+    require                                 => [ Exec['oracle-env-check'],File['/tmp/setup.sql'], Service['oracle-xe']],
     timeout                                 => '0',
+    logoutput                               => true,
+    environment                             => ['LD_LIBRARY_PATH=/u01/app/oracle/product/11.2.0/xe/lib:','ORACLE_SID=XE','ORACLE_BASE=/u01/app/oracle','PATH=/u01/app/oracle/product/11.2.0/xe/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/opt/vagrant_ruby/bin','ORACLE_HOME=/u01/app/oracle/product/11.2.0/xe'],
+    user                                    => 'vagrant'
   }
 }
